@@ -1,30 +1,30 @@
 const container = document.querySelector(".container");
 const search = document.querySelector(".search-box button");
+const cityHide = document.querySelector(".city-hide");
 const weatherBox = document.querySelector(".weather-box");
 const weatherDetails = document.querySelector(".weather-details");
-const error404 = document.querySelector('.not-found');
-const cityHide = document.querySelector('.city-hide');
+const error404 = document.querySelector(".not-found");
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
-      position => {
+      (position) => {
         const { latitude, longitude } = position.coords;
         fetchWeatherByCoordinates(latitude, longitude);
       },
-      error => {
-        console.error('Error occurred. Error code: ' + error.code);
-        handleLocationError(error);
-      }
+      handleLocationError
     );
   } else {
     alert('Geolocation is not supported by this browser.');
   }
 });
 
-search.addEventListener('click', () => {
+search.addEventListener("click", () => {
+  const APIKey = "77652c5df0d1c3bcb7766690f075cf1b";
   const city = document.querySelector(".search-box input").value;
-  if (city === '') return;
+
+  if (city === "") return;
+
   fetchWeatherByCity(city);
 });
 
@@ -54,12 +54,16 @@ function displayWeather(json, city = null) {
     return;
   }
 
-  const image = document.querySelector('.weather-box img');
+  const image = document.querySelector('.weather-box img.weather-image');
   const temperature = document.querySelector(".weather-box .temperature");
   const description = document.querySelector(".weather-box .description");
   const humidity = document.querySelector(".weather-details .humidity span");
   const wind = document.querySelector(".weather-details .wind span");
+  const visibility = document.querySelector(".weather-box .visibility span");
+  const sunrise = document.querySelector(".weather-box .sunrise span");
+  const sunset = document.querySelector(".weather-box .sunset span");
   const weatherCondition = json.weather[0].main;
+  const cityName = document.querySelector(".weather-box .city-name");
 
   if (city && cityHide.textContent === city) return;
 
@@ -87,8 +91,6 @@ function displayWeather(json, city = null) {
       image.src = "./images/cloud.png";
       break;
     case 'Mist':
-      image.src = "./images/mist.png";
-      break;
     case 'Haze':
       image.src = "./images/mist.png";
       break;
@@ -96,8 +98,16 @@ function displayWeather(json, city = null) {
       image.src = "./images/cloud.png";
       break;
   }
+
+  const sunriseTime = new Date(json.sys.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const sunsetTime = new Date(json.sys.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  cityName.innerHTML = city ? city : json.name;
   temperature.innerHTML = `${parseInt(json.main.temp)}<span>°C</span>`;
   description.innerHTML = `${json.weather[0].description}`;
+  visibility.innerHTML = `${json.visibility / 1000} km`;
+  sunrise.innerHTML = sunriseTime;
+  sunset.innerHTML = sunsetTime;
   humidity.innerHTML = `${json.main.humidity}%`;
   wind.innerHTML = `${parseInt(json.wind.speed)}km/h`;
 
